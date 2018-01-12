@@ -1,5 +1,5 @@
 // @flow
-import { cjkRegex } from "./unicodeRegexes";
+import { supportedCodepoint } from "./unicodeScripts";
 
 /**
  * This file contains metrics regarding fonts and individual symbols. The sigma
@@ -198,10 +198,15 @@ const getCharacterMetrics = function(
     let ch = character.charCodeAt(0);
     if (character[0] in extraCharacterMap) {
         ch = extraCharacterMap[character[0]].charCodeAt(0);
-    } else if (cjkRegex.test(character[0])) {
+    } else if (supportedCodepoint(ch) && !metricMap[font][ch]) {
+        // We don't typically have font metrics for Unicode scripts such
+        // as CJK, Hangul and Devangari, so we're just assuming
+        // they are all 1 "em" width here. If we need to tweak that on
+        // a script-by-script basis, we can use the scriptFromCodepoint()
+        // function to determine the script of this codepoint.
         ch = 'M'.charCodeAt(0);
     }
-    const metrics = metricMap[font]['' + ch];
+    const metrics = metricMap[font][ch];
     if (metrics) {
         return {
             depth: metrics[0],
